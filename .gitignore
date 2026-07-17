@@ -1,0 +1,32 @@
+# Python bytecode and interpreter caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build and package output
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test, coverage, type-checker, and linter caches
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Editors and operating systems
+*.swp
+*.swo
+*~
+.DS_Store
+.idea/
+.vscode/

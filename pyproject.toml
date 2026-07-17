@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pi-camera-studio"
+dynamic = ["version"]
+description = "A Picamera2 desktop application for use with Raspberry Pi camera hardware"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["camera", "object-detection", "picamera2", "raspberry-pi", "stop-motion"]
+license-files = [
+  "LICENSE",
+  "NOTICE",
+  "pi_camera_studio/models/LICENSE.NanoDet",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Multimedia :: Graphics :: Capture :: Digital Camera",
+  "Topic :: Multimedia :: Video :: Capture",
+]
+
+# Runtime imports are intentionally supplied by Raspberry Pi OS packages. In
+# particular, Picamera2, libcamera, PyQt5, PyAV, and OpenCV must not be replaced
+# by automatically downloaded PyPI wheels on the supported platform.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/LDighera/pi-camera-studio"
+Repository = "https://github.com/LDighera/pi-camera-studio"
+Issues = "https://github.com/LDighera/pi-camera-studio/issues"
+Changelog = "https://github.com/LDighera/pi-camera-studio/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pi-camera-studio = "pi_camera_studio.__main__:main"
+
+[tool.setuptools]
+# ``models`` is a data-only namespace package. Listing it explicitly avoids
+# setuptools treating its contents as ambiguous importable data.
+packages = ["pi_camera_studio", "pi_camera_studio.models"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "pi_camera_studio.__version__" }
+
+[tool.setuptools.package-data]
+pi_camera_studio = [
+  "models/LICENSE.NanoDet",
+  "models/README.md",
+  "models/model.json",
+  "models/object_detection_nanodet_2022nov.onnx",
+]

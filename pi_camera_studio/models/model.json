@@ -1,0 +1,14 @@
+{
+  "name": "OpenCV Zoo NanoDet-m-plus-1.5x_416",
+  "filename": "object_detection_nanodet_2022nov.onnx",
+  "source_revision": "f88e9b2bafd21f1cad242fb5af6d78f2bcba16a3",
+  "source_url": "https://github.com/opencv/opencv_zoo/raw/f88e9b2bafd21f1cad242fb5af6d78f2bcba16a3/models/object_detection_nanodet/object_detection_nanodet_2022nov.onnx",
+  "bytes": 3800954,
+  "sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+  "license": "Apache-2.0",
+  "license_file": "LICENSE.NanoDet",
+  "license_bytes": 11358,
+  "license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+  "classes": "COCO 80-class",
+  "input": "416x416 RGB"
+}

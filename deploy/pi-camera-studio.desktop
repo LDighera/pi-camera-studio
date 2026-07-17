@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Pi Camera Studio
+Comment=Local still, video, stop-motion, and object detection
+Exec=pi-camera-studio
+Icon=camera-photo
+Terminal=false
+Categories=Graphics;Photography;
+StartupNotify=true
+Keywords=Camera;Photo;Video;Stop Motion;Object Detection;
+X-Pi-Camera-Studio-Managed=true

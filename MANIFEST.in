@@ -1,0 +1,21 @@
+include LICENSE
+include NOTICE
+include README.md
+include RELEASING.md
+include VERIFICATION.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include install.sh
+include uninstall.sh
+include pyproject.toml
+include .gitignore
+include .gitattributes
+graft .github
+recursive-include bin *
+recursive-include deploy *
+recursive-include pi_camera_studio *.py
+recursive-include pi_camera_studio/models *
+recursive-include scripts *
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod] .DS_Store

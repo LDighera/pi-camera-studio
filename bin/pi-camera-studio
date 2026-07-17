@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+unset CDPATH
+PROJECT_ROOT=$(cd -- "$(dirname -- "$0")/.." && pwd)
+export PYTHONPATH="$PROJECT_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+exec /usr/bin/python3 -m pi_camera_studio "$@"

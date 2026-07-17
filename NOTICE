@@ -1,0 +1,29 @@
+Pi Camera Studio
+Copyright (c) 2026 Pi Camera Studio contributors
+
+The original Pi Camera Studio code is available under the MIT License in the
+top-level LICENSE file.
+
+Pi Camera Studio also distributes the OpenCV Zoo NanoDet-m-plus-1.5x_416 ONNX
+model and includes an adapted implementation of its reference inference and
+post-processing code.
+
+Upstream project: https://github.com/opencv/opencv_zoo
+Pinned revision: f88e9b2bafd21f1cad242fb5af6d78f2bcba16a3
+Upstream directory: models/object_detection_nanodet
+License: Apache License 2.0
+Bundled license: pi_camera_studio/models/LICENSE.NanoDet
+Model SHA-256: 4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186
+
+The pinned upstream model documentation identifies this as a Google Summer of
+Code 2022 project contributed by Sri Siddarth Chakaravarthy (GitHub user
+Sidd1609) for OpenCV. The NanoDet and COCO names identify their respective
+upstream projects; they do not imply endorsement of Pi Camera Studio.
+
+The MIT license for Pi Camera Studio does not replace or alter the Apache 2.0
+terms that apply to the bundled NanoDet material.
+
+Raspberry Pi is a trademark of Raspberry Pi Ltd. Pi Camera Studio is an
+independent project for use with compatible Raspberry Pi hardware; it is not
+affiliated with, authorized by, or endorsed by Raspberry Pi Ltd. No Raspberry
+Pi logo is distributed with this project.

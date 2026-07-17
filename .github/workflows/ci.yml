@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-compatibility:
+    name: Python ${{ matrix.python-version }} syntax and metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.13"]
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile sources and read package version
+        run: |
+          python -m compileall -q pi_camera_studio tests
+          python -c 'import pi_camera_studio; assert pi_camera_studio.__version__ == "0.1.0a1"'
+
+  source-tests:
+    name: Source tests and static checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install distribution test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends \
+            desktop-file-utils \
+            python3-build \
+            python3-numpy \
+            python3-opencv \
+            python3-pil \
+            python3-venv \
+            shellcheck
+
+      - name: Run deterministic non-hardware release gate
+        run: scripts/release-check
+
+  package:
+    name: Build and inspect distributions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install distribution tools
+        run: python -m pip install --disable-pip-version-check build twine
+
+      - name: Build wheel and source distribution
+        run: python -m build
+
+      - name: Validate distribution metadata and README rendering
+        run: python -m twine check --strict dist/*
+
+      - name: Record and verify distribution checksums
+        run: |
+          (cd dist && LC_ALL=C sha256sum *.whl *.tar.gz > SHA256SUMS)
+          (cd dist && sha256sum -c SHA256SUMS)
+
+      - name: Inspect distribution contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import glob
+          import tarfile
+          import zipfile
+
+          wheels = glob.glob("dist/*.whl")
+          sdists = glob.glob("dist/*.tar.gz")
+          if len(wheels) != 1 or len(sdists) != 1:
+              raise SystemExit("expected exactly one wheel and one source distribution")
+
+          required_wheel_suffixes = (
+              "pi_camera_studio/models/LICENSE.NanoDet",
+              "pi_camera_studio/models/README.md",
+              "pi_camera_studio/models/model.json",
+              "pi_camera_studio/models/object_detection_nanodet_2022nov.onnx",
+              ".dist-info/licenses/LICENSE",
+              ".dist-info/licenses/NOTICE",
+              ".dist-info/licenses/pi_camera_studio/models/LICENSE.NanoDet",
+              ".dist-info/entry_points.txt",
+              ".dist-info/METADATA",
+          )
+          with zipfile.ZipFile(wheels[0]) as archive:
+              names = archive.namelist()
+              missing = [
+                  item for item in required_wheel_suffixes
+                  if not any(name.endswith(item) for name in names)
+              ]
+              if missing:
+                  raise SystemExit(f"wheel is missing required assets: {missing}")
+
+          required_sdist_suffixes = (
+              "/LICENSE",
+              "/NOTICE",
+              "/README.md",
+              "/CHANGELOG.md",
+              "/CONTRIBUTING.md",
+              "/RELEASING.md",
+              "/SECURITY.md",
+              "/VERIFICATION.md",
+              "/install.sh",
+              "/uninstall.sh",
+              "/deploy/pi-camera-studio.desktop",
+              "/tests/test_detector.py",
+              "/pi_camera_studio/models/LICENSE.NanoDet",
+              "/pi_camera_studio/models/README.md",
+              "/pi_camera_studio/models/model.json",
+              "/pi_camera_studio/models/object_detection_nanodet_2022nov.onnx",
+          )
+          with tarfile.open(sdists[0], "r:gz") as archive:
+              names = archive.getnames()
+              missing = [item for item in required_sdist_suffixes if not any(name.endswith(item) for name in names)]
+              if missing:
+                  raise SystemExit(f"source distribution is missing required assets: {missing}")
+          PY
+
+      - name: Install wheel without replacing system camera dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/pi-camera-studio-wheel-test
+          /tmp/pi-camera-studio-wheel-test/bin/python -m pip install --no-deps dist/*.whl
+          test "$(/tmp/pi-camera-studio-wheel-test/bin/pi-camera-studio --version)" = \
+            "pi-camera-studio 0.1.0a1"
+          /tmp/pi-camera-studio-wheel-test/bin/python - <<'PY'
+          import hashlib
+          import importlib.metadata
+          from pi_camera_studio.config import load_model_manifest
+
+          manifest = load_model_manifest()
+          if not manifest.model_path.is_file():
+              raise SystemExit(f"installed model is missing: {manifest.model_path}")
+          if manifest.model_path.stat().st_size != manifest.size:
+              raise SystemExit("installed model size does not match its manifest")
+          if hashlib.sha256(manifest.model_path.read_bytes()).hexdigest() != manifest.sha256:
+              raise SystemExit("installed model SHA-256 does not match its manifest")
+          if not manifest.license_path.is_file():
+              raise SystemExit(f"installed model license is missing: {manifest.license_path}")
+          if manifest.license_path.stat().st_size != manifest.license_size:
+              raise SystemExit("installed model license size does not match its manifest")
+          if hashlib.sha256(manifest.license_path.read_bytes()).hexdigest() != manifest.license_sha256:
+              raise SystemExit("installed model license SHA-256 does not match its manifest")
+
+          entry_points = importlib.metadata.entry_points(group="console_scripts")
+          if not any(item.name == "pi-camera-studio" for item in entry_points):
+              raise SystemExit("wheel does not install the pi-camera-studio entry point")
+          PY
+
+      - name: Retain validated distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: pi-camera-studio-distributions
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          if-no-files-found: error

@@ -1,0 +1,20 @@
+#!/bin/sh
+# Pi Camera Studio user-local launcher
+set -eu
+
+if [ -z "${HOME:-}" ]; then
+    printf '%s\n' 'pi-camera-studio: HOME is not set' >&2
+    exit 2
+fi
+
+data_home=${XDG_DATA_HOME:-"$HOME/.local/share"}
+runtime_root=${PI_CAMERA_STUDIO_RUNTIME_ROOT:-"${data_home%/}/pi-camera-studio"}
+
+if [ ! -f "$runtime_root/pi_camera_studio/__main__.py" ]; then
+    printf 'pi-camera-studio: installation is incomplete at %s\n' "$runtime_root" >&2
+    printf '%s\n' 'Run install.sh again from a complete release checkout.' >&2
+    exit 2
+fi
+
+export PYTHONPATH="$runtime_root"
+exec /usr/bin/python3 -m pi_camera_studio "$@"
