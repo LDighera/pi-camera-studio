@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -57,6 +57,14 @@ jobs:
             python3-venv \
             shellcheck
 
+      - name: Prepare declared build backend
+        run: |
+          python3 -m venv --system-site-packages /tmp/pi-camera-studio-source-tests
+          /tmp/pi-camera-studio-source-tests/bin/python -m pip install \
+            --disable-pip-version-check \
+            setuptools==78.1.1
+          echo "/tmp/pi-camera-studio-source-tests/bin" >> "$GITHUB_PATH"
+
       - name: Run deterministic non-hardware release gate
         run: scripts/release-check
 
@@ -67,7 +75,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 

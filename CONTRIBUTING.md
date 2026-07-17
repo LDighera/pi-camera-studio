@@ -23,9 +23,22 @@ described in `SECURITY.md`, rather than a public issue.
 ## Development setup
 
 Use the Raspberry Pi OS runtime packages listed in `README.md`; the camera stack
-is not supported inside a pip-managed virtual environment. Install the release
-checks with `sudo apt install desktop-file-utils python3-build shellcheck`, then
-run from a source checkout:
+is not supported inside an isolated pip-managed environment. Install the release
+checks with
+`sudo apt install desktop-file-utils python3-build python3-venv shellcheck`.
+The release gate builds without PEP 517 isolation, so its active Python must
+provide Setuptools 77 or newer as declared in `pyproject.toml`.
+
+If the operating system supplies an older Setuptools, prepare the same
+system-package-aware build environment used by CI outside the source checkout:
+
+```sh
+python3 -m venv --system-site-packages /tmp/pi-camera-studio-source-tests
+/tmp/pi-camera-studio-source-tests/bin/python -m pip install setuptools==78.1.1
+PATH="/tmp/pi-camera-studio-source-tests/bin:$PATH" scripts/release-check
+```
+
+Otherwise, run from a source checkout:
 
 ```sh
 scripts/release-check

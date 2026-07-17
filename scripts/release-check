@@ -69,6 +69,8 @@ if [ -n "$cache_path" ]; then
 fi
 
 PYTHONPYCACHEPREFIX="$temporary/pycache" python3 - <<'PY'
+import re
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import pi_camera_studio
@@ -83,6 +85,17 @@ if pi_camera_studio.__version__ != package_version:
 changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
 if f"## [{release_tag.removeprefix('v')}]" not in changelog:
     raise SystemExit(f"CHANGELOG.md has no section for {release_tag}")
+
+try:
+    setuptools_version = version("setuptools")
+except PackageNotFoundError:
+    raise SystemExit("setuptools is unavailable; version 77 or newer is required") from None
+major_match = re.match(r"^(\d+)", setuptools_version)
+if major_match is None or int(major_match.group(1)) < 77:
+    raise SystemExit(
+        f"setuptools {setuptools_version} is too old; version 77 or newer is required "
+        "for this non-isolated release build"
+    )
 PY
 
 python3 - <<'PY'
