@@ -13,9 +13,8 @@ model documentation, and license files. The source-only `install.sh` and
    release to `CHANGELOG.md`. The `0.1.0a1` package version corresponds to the
    human-facing Git tag `v0.1.0-alpha.1`.
 2. Run `scripts/release-check` from a clean checkout. This is a non-hardware gate
-   and must complete without skipped tests. Its non-isolated package build
-   requires Setuptools 77 or newer; CI uses Setuptools 78.1.1 with the operating
-   system's Python packages visible.
+   and must complete without skipped tests. Its isolated package build installs
+   the backend requirements declared in `pyproject.toml`.
 3. Complete the supported Raspberry Pi hardware checks in `VERIFICATION.md`.
    Review generated still, video, audio, stop-motion, and detection artifacts
    locally; never add them to a release merely because a command exited zero.
@@ -26,7 +25,7 @@ model documentation, and license files. The source-only `install.sh` and
 Build from the exact candidate commit in a clean checkout:
 
 ```sh
-python3 -m build --no-isolation
+python3 -m build
 python3 -m twine check --strict dist/*
 (cd dist && LC_ALL=C sha256sum *.whl *.tar.gz > SHA256SUMS)
 (cd dist && sha256sum -c SHA256SUMS)

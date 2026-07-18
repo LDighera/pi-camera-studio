@@ -69,8 +69,6 @@ if [ -n "$cache_path" ]; then
 fi
 
 PYTHONPYCACHEPREFIX="$temporary/pycache" python3 - <<'PY'
-import re
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import pi_camera_studio
@@ -85,17 +83,6 @@ if pi_camera_studio.__version__ != package_version:
 changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
 if f"## [{release_tag.removeprefix('v')}]" not in changelog:
     raise SystemExit(f"CHANGELOG.md has no section for {release_tag}")
-
-try:
-    setuptools_version = version("setuptools")
-except PackageNotFoundError:
-    raise SystemExit("setuptools is unavailable; version 77 or newer is required") from None
-major_match = re.match(r"^(\d+)", setuptools_version)
-if major_match is None or int(major_match.group(1)) < 77:
-    raise SystemExit(
-        f"setuptools {setuptools_version} is too old; version 77 or newer is required "
-        "for this non-isolated release build"
-    )
 PY
 
 python3 - <<'PY'
@@ -170,21 +157,10 @@ tar -xf "$source_archive" -C "$temporary/source"
 
 (
     cd "$temporary/source"
-    if python3 -c 'import build' >/dev/null 2>&1; then
-        PYTHONPYCACHEPREFIX="$temporary/build-pycache" \
-            python3 -m build --no-isolation --outdir "$temporary/dist"
-    else
-        mkdir "$temporary/dist"
-        PYTHONPYCACHEPREFIX="$temporary/build-pycache" \
-            python3 - "$temporary/dist" <<'PY'
-import sys
-from setuptools.build_meta import build_sdist, build_wheel
-
-output_directory = sys.argv[1]
-build_wheel(output_directory)
-build_sdist(output_directory)
-PY
-    fi
+    python3 -c 'import build' >/dev/null 2>&1 || \
+        fail "Python build module is unavailable; install python3-build"
+    PYTHONPYCACHEPREFIX="$temporary/build-pycache" \
+        python3 -m build --outdir "$temporary/dist"
 )
 
 python3 - "$temporary/dist" <<'PY'
